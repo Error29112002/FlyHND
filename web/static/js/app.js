@@ -328,8 +328,8 @@
     }
     if (offer.airline_url) {
       airlineLink.href = offer.airline_url;
-      airlineLink.innerHTML = `${esc(airline)} site <i class="ph ph-arrow-square-out" aria-hidden="true"></i>`;
-      airlineLink.setAttribute("aria-label", `Open the ${airline} website (opens in a new tab)`);
+      airlineLink.innerHTML = `<i class="ph ph-globe-simple" aria-hidden="true"></i>${esc(airline)} homepage`;
+      airlineLink.setAttribute("aria-label", `Open the ${airline} homepage, not this flight (opens in a new tab)`);
     } else {
       airlineLink.remove();
     }

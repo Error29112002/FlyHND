@@ -294,6 +294,13 @@ select.input { appearance: none; cursor: pointer;
 .card-meta { display: flex; flex-wrap: wrap; gap: var(--s-75) var(--s-200); }
 .card-meta > span { display: inline-flex; align-items: center; gap: var(--s-50); }
 .card-meta i { font-size: 1rem; }
+.meta-link {
+  display: inline-flex; align-items: center; gap: var(--s-50);
+  color: var(--text-muted); text-decoration: underline; text-decoration-color: var(--border-strong); text-underline-offset: 3px;
+  border-radius: var(--r-sm);
+  transition: color 300ms var(--ease), text-decoration-color 300ms var(--ease);
+}
+.meta-link:hover { color: var(--text); text-decoration-color: currentColor; }
 .card-actions { display: flex; gap: var(--s-75); flex-wrap: wrap; justify-content: flex-end; }
 
 .card-details { display: flex; flex-direction: column; gap: var(--s-100); animation: fade 500ms var(--ease) both; }
@@ -354,7 +361,6 @@ select.input { appearance: none; cursor: pointer;
   .field-narrow { flex: 1 1 120px; }
   .search-btn { width: 100%; margin-left: 0; }
   .card-foot { flex-direction: column; align-items: stretch; }
-  .card-actions { display: grid; grid-template-columns: 1fr 1fr; }
-  .card-actions .book-link { grid-column: 1 / -1; grid-row: 1; }
+  .card-actions { display: flex; flex-direction: column-reverse; align-items: stretch; }
   .nav { gap: var(--s-200); }
 }

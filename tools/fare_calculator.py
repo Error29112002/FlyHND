@@ -54,7 +54,9 @@ class FareCalculator:
 
         grouped: Dict[str, List[FlightOffer]] = {}
         for offer in offers:
-            key = f"{offer.flight_number.strip().upper()}_{offer.origin}_{offer.destination}"
+            # Same trip = same flights in order; connections that share only a first leg are different offers.
+            legs = "+".join(s.get("flight_number", "") for s in offer.segments) or offer.flight_number
+            key = f"{legs.strip().upper()}_{offer.origin}_{offer.destination}"
             grouped.setdefault(key, []).append(offer)
 
         arbitrated_offers: List[FlightOffer] = []
@@ -72,7 +74,8 @@ class FareCalculator:
                 except Exception:
                     return datetime.min
 
-            sorted_offers = sorted(offer_list, key=parse_time, reverse=True)
+            # Newest quote wins; on a tie (one live response), the cheaper fare wins.
+            sorted_offers = sorted(offer_list, key=lambda o: (parse_time(o), -o.total_fare), reverse=True)
             winner = sorted_offers[0]
             older = sorted_offers[1]
 
