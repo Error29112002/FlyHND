@@ -3,107 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FlyHND — Global Flight Search</title>
+  <title>FlyHND · Compare flight prices and book with the airline</title>
+  <meta name="description" content="Search flights, compare fares by price, duration and stops, then check the live price and book on the airline's own site." />
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
 
-<!-- Backdrop overlay for modal spotlight effect -->
-<div id="modalBackdrop" class="modal-backdrop" style="display:none;"></div>
+<a href="#main" class="skip-link button-sm">Skip to content</a>
 
-<!-- ───────────── HEADER ───────────── -->
-<header class="site-header">
-  <div class="header-inner">
-    <div class="brand">
-      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="FlyHND Logo" class="brand-logo-img" />
-    </div>
-    <div class="provider-pill {{ 'live' if live_configured else 'demo' }}">
-      {% if live_configured %}
-        <span class="dot"></span> Live &middot; {{ provider_label }}
-      {% else %}
-        <span class="dot"></span> Demo mode &mdash; add SERPAPI_KEY to .env
-      {% endif %}
-    </div>
-  </div>
+<!-- ───────────── NAV ───────────── -->
+<header class="nav-wrap">
+  <nav class="nav" aria-label="Main">
+    <a href="/" class="nav-brand" aria-current="page">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="FlyHND home" class="nav-logo" />
+    </a>
+    <span class="status-pill caption-4 {{ 'is-live' if live_configured else 'is-demo' }}">
+      <span class="status-dot" aria-hidden="true"></span>
+      {% if live_configured %}Live fares · {{ provider_label }}{% else %}Demo fares{% endif %}
+    </span>
+  </nav>
 </header>
 
-<main>
+<main id="main">
 
-  <!-- ───────────── SEARCH CARD ───────────── -->
-  <section class="search-section">
-    <h1 class="search-title">Find flights anywhere in the world</h1>
-    <p class="search-sub">Enter cities, airports, or countries &mdash; we&rsquo;ll look them up.</p>
+  <!-- ───────────── HERO + SEARCH ───────────── -->
+  <section class="hero" aria-labelledby="heroTitle">
+    <h1 id="heroTitle" class="heading-2 hero-title">Find the cheapest flight,<br />then book it with the airline</h1>
+    <p class="body-3 hero-sub">Compare fares by price, duration and stops. Pick a flight and we take you to the live price and booking page.</p>
 
     {% if not live_configured %}
-    <div class="banner banner-warn">
-      <strong>No live provider configured.</strong>
-      Add <code>SERPAPI_API_KEY</code> to <code>.env</code> and restart the server for real-time search.
+    <div class="note note-warn body-6" role="note">
+      <i class="ph ph-info" aria-hidden="true"></i>
+      <span>You are seeing demo fares for Pune to Singapore only. Add <code>SERPAPI_API_KEY</code> to <code>.env</code> and restart the server for live search.</span>
     </div>
     {% endif %}
 
     <form id="searchForm" class="search-card" novalidate>
 
-      <!-- Trip type toggle -->
-      <div class="trip-toggle">
-        <label class="radio-label">
+      <fieldset class="segmented" aria-label="Trip type">
+        <label class="segmented-option button-sm">
           <input type="radio" name="tripType" value="one_way" checked /> One way
         </label>
-        <label class="radio-label">
+        <label class="segmented-option button-sm">
           <input type="radio" name="tripType" value="return" /> Return
         </label>
-      </div>
+      </fieldset>
 
-      <!-- Row 1: Inputs (From / Swap / To / Dates / Pax / Currency) -->
-      <div class="form-row">
+      <div class="field-grid">
 
-        <!-- From -->
-        <div class="field-group field-group--grow">
-          <label for="originInput">From</label>
-          <div class="autocomplete-wrapper">
-            <input id="originInput" type="text" class="field-input"
-              placeholder="City, airport or country&hellip;" autocomplete="off" required />
-            <input type="hidden" id="originId" />
-            <ul id="originSuggestions" class="suggestion-list" role="listbox" hidden></ul>
+        <div class="route-fields">
+          <div class="field">
+            <label for="originInput" class="title-5">From</label>
+            <div class="autocomplete">
+              <i class="ph ph-airplane-takeoff field-icon" aria-hidden="true"></i>
+              <input id="originInput" type="text" class="input body-3 has-icon"
+                placeholder="City or airport" autocomplete="off" required
+                role="combobox" aria-autocomplete="list" aria-controls="originSuggestions" aria-expanded="false" />
+              <input type="hidden" id="originId" />
+              <ul id="originSuggestions" class="suggestions" role="listbox" hidden></ul>
+            </div>
+          </div>
+
+          <button type="button" id="swapBtn" class="icon-btn swap-btn" aria-label="Swap origin and destination">
+            <i class="ph ph-arrows-left-right" aria-hidden="true"></i>
+          </button>
+
+          <div class="field">
+            <label for="destInput" class="title-5">To</label>
+            <div class="autocomplete">
+              <i class="ph ph-airplane-landing field-icon" aria-hidden="true"></i>
+              <input id="destInput" type="text" class="input body-3 has-icon"
+                placeholder="City or airport" autocomplete="off" required
+                role="combobox" aria-autocomplete="list" aria-controls="destSuggestions" aria-expanded="false" />
+              <input type="hidden" id="destId" />
+              <ul id="destSuggestions" class="suggestions" role="listbox" hidden></ul>
+            </div>
           </div>
         </div>
 
-        <!-- Swap -->
-        <button type="button" id="swapBtn" class="swap-btn" title="Swap" aria-label="Swap">&#8646;</button>
-
-        <!-- To -->
-        <div class="field-group field-group--grow">
-          <label for="destInput">To</label>
-          <div class="autocomplete-wrapper">
-            <input id="destInput" type="text" class="field-input"
-              placeholder="City, airport or country&hellip;" autocomplete="off" required />
-            <input type="hidden" id="destId" />
-            <ul id="destSuggestions" class="suggestion-list" role="listbox" hidden></ul>
-          </div>
+        <div class="trip-fields">
+        <div class="field">
+          <label for="dateInput" class="title-5">Depart</label>
+          <input id="dateInput" type="date" class="input body-3" required />
         </div>
 
-        <!-- Depart date -->
-        <div class="field-group">
-          <label for="dateInput">Depart</label>
-          <input id="dateInput" type="date" class="field-input" required />
+        <div class="field" id="returnDateGroup" hidden>
+          <label for="returnDateInput" class="title-5">Return</label>
+          <input id="returnDateInput" type="date" class="input body-3" />
         </div>
 
-        <!-- Return date (shown only when return selected) -->
-        <div class="field-group" id="returnDateGroup" style="display:none">
-          <label for="returnDateInput">Return</label>
-          <input id="returnDateInput" type="date" class="field-input" />
+        <div class="field field-narrow">
+          <label for="passengersInput" class="title-5">Travellers</label>
+          <input id="passengersInput" type="number" class="input body-3" min="1" max="9" value="1" inputmode="numeric" />
         </div>
 
-        <!-- Passengers -->
-        <div class="field-group field-group--narrow">
-          <label for="passengersInput">Pax</label>
-          <input id="passengersInput" type="number" class="field-input" min="1" max="9" value="1" />
-        </div>
-
-        <!-- Currency -->
-        <div class="field-group field-group--narrow">
-          <label for="currencyInput">Currency</label>
-          <select id="currencyInput" class="field-input">
+        <div class="field field-narrow">
+          <label for="currencyInput" class="title-5">Currency</label>
+          <select id="currencyInput" class="input body-3">
             <option value="INR" selected>INR</option>
             <option value="USD">USD</option>
             <option value="EUR">EUR</option>
@@ -114,124 +116,118 @@
           </select>
         </div>
 
-      </div><!-- /form-row -->
-
-      <!-- Action Row: Search button pushed to the right side -->
-      <div class="search-action-row">
-        <button type="submit" id="searchBtn" class="btn-primary search-btn-lg">
-          <span id="searchBtnText">Search Flights</span>
-          <span id="searchBtnSpinner" class="spinner" style="display:none;"></span>
+        <button type="submit" id="searchBtn" class="btn btn-primary button-md search-btn">
+          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+          <span id="searchBtnText">Search flights</span>
         </button>
+        </div>
+
       </div>
 
+      <div id="errorBanner" class="note note-error body-6" role="alert" hidden></div>
     </form>
   </section>
 
-  <!-- ───────────── ERROR ───────────── -->
-  <div id="errorBanner" class="banner banner-error" hidden></div>
-
   <!-- ───────────── RESULTS ───────────── -->
-  <section id="resultsSection" class="results-section" hidden>
+  <section id="resultsSection" class="results" aria-live="polite" hidden>
 
-    <!-- Demo notice -->
-    <div id="demoBanner" class="banner banner-info" hidden></div>
+    <div id="demoBanner" class="note note-info body-6" role="note" hidden></div>
 
-    <!-- Outbound results -->
-    <div id="outboundBlock">
-      <div class="results-header">
+    <div id="outboundBlock" class="leg">
+      <div class="leg-head">
         <div>
-          <h2 id="outboundTitle" class="results-title"></h2>
-          <p id="outboundSub" class="results-sub"></p>
+          <p class="caption-3 leg-kicker">Outbound</p>
+          <h2 id="outboundTitle" class="heading-5"></h2>
+          <p id="outboundSub" class="body-6 muted"></p>
         </div>
-      </div>
-      <div id="tabBar" class="tab-bar">
-        <button class="tab-btn active" data-sort="price">Cheapest</button>
-        <button class="tab-btn" data-sort="duration">Fastest</button>
-        <button class="tab-btn" data-sort="best">Best Value</button>
+        <div class="segmented sort-group" role="group" aria-label="Sort outbound flights" data-target="outbound">
+          <button type="button" class="segmented-option button-sm" data-sort="price" aria-pressed="true">Cheapest</button>
+          <button type="button" class="segmented-option button-sm" data-sort="duration" aria-pressed="false">Fastest</button>
+          <button type="button" class="segmented-option button-sm" data-sort="best" aria-pressed="false">Fewest stops</button>
+        </div>
       </div>
       <div id="flightList" class="flight-list"></div>
-      <div id="noResults" class="no-results" hidden>
-        <p>No flights found for this route.</p>
-      </div>
     </div>
 
-    <!-- Return results (shown only for round trips) -->
-    <div id="returnBlock" hidden>
-      <div class="results-divider">
-        <span>Return Flight</span>
-      </div>
-      <div class="results-header">
+    <div id="returnBlock" class="leg" hidden>
+      <div class="leg-head">
         <div>
-          <h2 id="returnTitle" class="results-title"></h2>
-          <p id="returnSub" class="results-sub"></p>
+          <p class="caption-3 leg-kicker">Return</p>
+          <h2 id="returnTitle" class="heading-5"></h2>
+          <p id="returnSub" class="body-6 muted"></p>
+        </div>
+        <div class="segmented sort-group" role="group" aria-label="Sort return flights" data-target="return">
+          <button type="button" class="segmented-option button-sm" data-sort="price" aria-pressed="true">Cheapest</button>
+          <button type="button" class="segmented-option button-sm" data-sort="duration" aria-pressed="false">Fastest</button>
+          <button type="button" class="segmented-option button-sm" data-sort="best" aria-pressed="false">Fewest stops</button>
         </div>
       </div>
-      <div id="tabBarReturn" class="tab-bar">
-        <button class="tab-btn-r active" data-sort="price">Cheapest</button>
-        <button class="tab-btn-r" data-sort="duration">Fastest</button>
-        <button class="tab-btn-r" data-sort="best">Best Value</button>
-      </div>
       <div id="returnFlightList" class="flight-list"></div>
-      <div id="noReturnResults" class="no-results" hidden>
-        <p>No return flights found.</p>
-      </div>
     </div>
 
   </section>
 
 </main>
 
-<!-- ───────────── FOOTER ───────────── -->
-<footer class="site-footer">
-  <p>FlyHND &middot; Global Flight Search &amp; Price Comparison &middot;
-  Fares from live providers where configured; demo data otherwise &middot;
-  Booking &amp; payment: planned for FlyHND 4.0</p>
+<footer class="footer">
+  <p class="caption-5 muted">FlyHND compares fares. Prices are confirmed and booked on the airline or travel site you choose, so the final price may differ from the one shown here.</p>
 </footer>
 
-<!-- Card template -->
+<!-- Flight card -->
 <template id="flightCardTemplate">
   <article class="flight-card">
-    <div class="card-badges"></div>
-    <div class="card-top">
+    <div class="card-main">
       <div class="card-airline">
-        <span class="airline-name"></span>
-        <span class="flight-number"></span>
-      </div>
-      <div class="card-price">
-        <span class="price-currency"></span><span class="price-amount"></span>
-        <span class="price-note"></span>
-      </div>
-    </div>
-    <div class="card-route">
-      <div class="route-point">
-        <span class="route-time dep-time"></span>
-        <span class="route-code dep-code"></span>
-      </div>
-      <div class="route-middle">
-        <span class="route-duration"></span>
-        <div class="route-line">
-          <span class="stop-dot-left"></span>
-          <div class="route-track"></div>
-          <span class="stop-dot-right"></span>
+        <span class="airline-mark title-5" aria-hidden="true"></span>
+        <div>
+          <p class="title-3 airline-name"></p>
+          <p class="caption-5 muted flight-number"></p>
         </div>
-        <span class="route-stops"></span>
       </div>
-      <div class="route-point">
-        <span class="route-time arr-time"></span>
-        <span class="route-code arr-code"></span>
+
+      <div class="card-route">
+        <div class="route-end">
+          <span class="title-2 dep-time"></span>
+          <span class="caption-4 muted dep-code"></span>
+        </div>
+        <div class="route-mid">
+          <span class="caption-5 muted route-duration"></span>
+          <span class="route-line" aria-hidden="true"></span>
+          <span class="caption-4 route-stops"></span>
+        </div>
+        <div class="route-end route-end--right">
+          <span class="title-2 arr-time"></span>
+          <span class="caption-4 muted arr-code"></span>
+        </div>
       </div>
-    </div>
-    <div class="card-meta">
-      <span class="meta-cabin"></span>
-      <span class="meta-baggage"></span>
-      <span class="meta-source"></span>
-      <span class="expand-hint">Click for details &#9662;</span>
+
+      <div class="card-price">
+        <div class="card-badges"></div>
+        <p class="heading-5 price-amount"></p>
+        <p class="caption-5 muted price-note"></p>
+      </div>
     </div>
 
-    <!-- Collapsible Flight Itinerary & Layover Details -->
-    <div class="card-details" style="display:none;">
-      <div class="details-divider">Flight Itinerary &amp; Route Stops</div>
-      <div class="segments-container"></div>
+    <div class="card-foot">
+      <div class="card-meta caption-5 muted">
+        <span><i class="ph ph-armchair" aria-hidden="true"></i> <span class="meta-cabin"></span></span>
+        <span><i class="ph ph-suitcase-rolling" aria-hidden="true"></i> <span class="meta-baggage"></span></span>
+        <span><i class="ph ph-database" aria-hidden="true"></i> <span class="meta-source"></span></span>
+      </div>
+      <div class="card-actions">
+        <button type="button" class="btn btn-ghost button-sm details-btn" aria-expanded="false">
+          Details <i class="ph ph-caret-down" aria-hidden="true"></i>
+        </button>
+        <a class="btn btn-secondary button-sm airline-link" target="_blank" rel="noopener noreferrer"></a>
+        <a class="btn btn-primary button-sm book-link" target="_blank" rel="noopener noreferrer">
+          Check price and book <i class="ph ph-arrow-up-right" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="card-details" hidden>
+      <p class="caption-3 muted">Itinerary</p>
+      <div class="segments"></div>
     </div>
   </article>
 </template>
