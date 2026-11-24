@@ -121,12 +121,15 @@ class FlightSearchTool:
             "currency": currency.upper(),
             "hl": "en",
             "adults": str(adults),
+            # Without these Google returns only its short "top flights" list and can omit the cheapest fares.
+            "show_hidden": "true",
+            "deep_search": "true",
             "api_key": serpapi_key
         }
         query_url = f"https://serpapi.com/search.json?{urllib.parse.urlencode(params)}"
         req = urllib.request.Request(query_url, headers={"User-Agent": "FlyHND-Agent/2.0"})
 
-        with urllib.request.urlopen(req, timeout=14.0) as resp:
+        with urllib.request.urlopen(req, timeout=30.0) as resp:  # deep_search responds slower
             data = json.loads(resp.read().decode("utf-8"))
             return self._parse_serpapi_response(data, origin, destination, departure_date, currency)
 

@@ -10,6 +10,7 @@ FlyHND is a Python flight-search application with a Flask web interface and a co
 - Use the included offline dataset for the Pune (PNQ) to Singapore (SIN) demo route.
 - Search one-way or return itineraries in the web interface, with passenger count, currency, and optional budget filters.
 - Sort and compare results by price, duration, and value; inspect itinerary segments when provider data includes them.
+- Open any result's live price and booking options on Google Flights, or go straight to the airline's own website (`tools/booking_links.py`).
 - Resolve duplicate quotes by keeping the most recently observed offer for a flight.
 - Retrieve policy and prior-search evidence using a small in-project TF-IDF retriever.
 - Store policy records, cached flight snapshots, and search history in SQLite.

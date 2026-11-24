@@ -29,6 +29,7 @@ from flask import Flask, render_template, request, jsonify
 from models.memory_models import SearchRequest
 from agents.orchestrator import RequestCoordinator
 from tools.flight_search_tool import FlightSearchTool
+from tools.booking_links import airline_site, price_check_url
 
 # ---------------------------------------------------------------------------
 # App setup
@@ -298,7 +299,7 @@ def api_search():
         "OFFLINE_CACHE":       "Cached demo data (not live prices)",
     }
 
-    def annotate(offers, is_demo):
+    def annotate(offers, is_demo, leg_date, leg_origin, leg_dest):
         try:
             sorted_offers = sorted(offers, key=lambda x: float(x.get("total_fare_num", x.get("total_fare", 0))))
         except Exception:
@@ -324,16 +325,23 @@ def api_search():
                 budget is not None and
                 Decimal(str(o.get("total_fare", "0"))) > budget
             )
+            # Links use the searched date (demo offers carry fixed dates of their own).
+            # Demo airlines may not fly the route, so filtering Google Flights by them can show nothing.
+            o["airline_url"] = airline_site(o.get("airline_code", ""), o.get("airline", ""))
+            o["price_check_url"] = price_check_url(
+                o.get("origin") or leg_origin, o.get("destination") or leg_dest,
+                leg_date, "" if is_demo else o.get("airline", ""), currency,
+            )
 
         return sorted_offers
 
     outbound_all  = outbound_report.get("price_comparison", [])
-    outbound_offers = annotate(outbound_all, mode == "offline")
+    outbound_offers = annotate(outbound_all, mode == "offline", date_str, origin_id, dest_id)
 
     return_offers = []
     if return_report:
         return_all   = return_report.get("price_comparison", [])
-        return_offers = annotate(return_all, mode == "offline")
+        return_offers = annotate(return_all, mode == "offline", return_date, dest_id, origin_id)
 
     is_demo   = mode == "offline"
     demo_note = (
